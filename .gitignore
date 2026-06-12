@@ -18,9 +18,7 @@ media/
 staticfiles/
 *.log
 
-# ML Models (large files — use Git LFS or share separately)
-ml_models/*.h5
-ml_models/*.keras
+
 
 
 # Virtual Environment
