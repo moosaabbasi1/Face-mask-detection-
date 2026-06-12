@@ -1,0 +1,181 @@
+{% extends 'detector/base.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero ────────────────────────────────────────────────────────────── -->
+<section class="hero-section position-relative overflow-hidden">
+  <div class="hero-bg-gradient"></div>
+  <div class="container position-relative py-5">
+    <div class="row align-items-center min-vh-75 py-5">
+      <div class="col-lg-6 text-white">
+        <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-2 mb-4 fw-normal">
+          <i class="bi bi-stars me-1"></i> Powered by Deep Learning · CNN Architecture
+        </span>
+        <h1 class="display-4 fw-extrabold lh-tight mb-4">
+          Face Mask Detection<br>
+          <span class="text-gradient-accent">in Real Time</span>
+        </h1>
+        <p class="lead text-white-75 mb-5">
+          Upload a photo or use your webcam to instantly detect whether a person
+          is wearing a face mask. Powered by a custom Convolutional Neural Network
+          trained on thousands of images.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="{% url 'detection' %}" class="btn btn-accent btn-lg rounded-pill px-4 shadow">
+            <i class="bi bi-upload me-2"></i>Start Detection
+          </a>
+          <a href="{% url 'camera' %}" class="btn btn-outline-light btn-lg rounded-pill px-4">
+            <i class="bi bi-camera-video me-2"></i>Live Camera
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-6 d-none d-lg-flex justify-content-center mt-5 mt-lg-0">
+        <div class="hero-illustration">
+          <div class="hero-card-float card shadow-lg border-0 p-4 text-center">
+            <i class="bi bi-shield-check display-1 text-accent mb-3"></i>
+            <h4 class="fw-bold">AI-Powered</h4>
+            <p class="text-muted mb-0 small">95–98% accuracy<br>on test data</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Decorative wave -->
+  <div class="hero-wave">
+    <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="var(--bs-body-bg)"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ── Stats ────────────────────────────────────────────────────────────── -->
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-4 col-lg-3">
+        <div class="stat-card card border-0 shadow-sm text-center p-4 h-100">
+          <div class="stat-icon bg-primary-subtle text-primary rounded-circle mx-auto mb-3">
+            <i class="bi bi-graph-up-arrow fs-4"></i>
+          </div>
+          <h2 class="fw-bold counter" data-target="{{ stats.total }}">{{ stats.total }}</h2>
+          <p class="text-muted mb-0">Total Predictions</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-lg-3">
+        <div class="stat-card card border-0 shadow-sm text-center p-4 h-100">
+          <div class="stat-icon bg-success-subtle text-success rounded-circle mx-auto mb-3">
+            <i class="bi bi-check-circle fs-4"></i>
+          </div>
+          <h2 class="fw-bold counter text-success" data-target="{{ stats.mask }}">{{ stats.mask }}</h2>
+          <p class="text-muted mb-0">Mask Detected</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-lg-3">
+        <div class="stat-card card border-0 shadow-sm text-center p-4 h-100">
+          <div class="stat-icon bg-danger-subtle text-danger rounded-circle mx-auto mb-3">
+            <i class="bi bi-x-circle fs-4"></i>
+          </div>
+          <h2 class="fw-bold counter text-danger" data-target="{{ stats.no_mask }}">{{ stats.no_mask }}</h2>
+          <p class="text-muted mb-0">No Mask Detected</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ─────────────────────────────────────────────────────────── -->
+<section class="py-5 bg-body-tertiary">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="badge bg-primary-subtle text-primary rounded-pill px-3 mb-2">Features</span>
+      <h2 class="display-6 fw-bold">Everything You Need</h2>
+      <p class="text-muted lead">A complete face mask detection platform, right in your browser.</p>
+    </div>
+    <div class="row g-4">
+      {% for feat in features %}
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card card border-0 shadow-sm p-4 h-100">
+          <div class="feature-icon mb-3 {{ feat.color }}">
+            <i class="bi {{ feat.icon }} fs-3"></i>
+          </div>
+          <h5 class="fw-semibold mb-2">{{ feat.title }}</h5>
+          <p class="text-muted small mb-0">{{ feat.desc }}</p>
+        </div>
+      </div>
+      {% empty %}
+      {% for feat in default_features %}
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card card border-0 shadow-sm p-4 h-100">
+          <div class="feature-icon mb-3 {{ feat.color }}">
+            <i class="bi {{ feat.icon }} fs-3"></i>
+          </div>
+          <h5 class="fw-semibold mb-2">{{ feat.title }}</h5>
+          <p class="text-muted small mb-0">{{ feat.desc }}</p>
+        </div>
+      </div>
+      {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── Recent predictions ───────────────────────────────────────────────── -->
+{% if recent %}
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="fw-bold mb-0">Recent Detections</h3>
+      <a href="{% url 'history' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+        View All <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+    <div class="row g-3">
+      {% for r in recent %}
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card border-0 shadow-sm overflow-hidden h-100 result-thumb">
+          {% if r.image %}
+          <img src="{{ r.image.url }}" class="card-img-top" style="height:120px;object-fit:cover" alt="prediction">
+          {% endif %}
+          <div class="card-body p-2 text-center">
+            <span class="badge bg-{{ r.badge_color }} rounded-pill small">{{ r.prediction }}</span>
+            <p class="small text-muted mt-1 mb-0">{{ r.confidence|floatformat:1 }}%</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── CTA ──────────────────────────────────────────────────────────────── -->
+<section class="cta-section py-5 my-4">
+  <div class="container text-center">
+    <div class="cta-inner rounded-4 p-5">
+      <h2 class="display-6 fw-bold text-white mb-3">Ready to detect?</h2>
+      <p class="text-white-75 lead mb-4">Upload an image or use your webcam — results in under a second.</p>
+      <a href="{% url 'detection' %}" class="btn btn-light btn-lg rounded-pill px-5 fw-semibold shadow">
+        <i class="bi bi-upload me-2"></i>Try It Now
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Feature cards data injected inline since we can't pass complex objects easily
+  const features = [
+    { icon:'bi-upload',       color:'text-primary',  title:'Image Upload',       desc:'Drag & drop or browse to upload any JPEG/PNG image for instant analysis.' },
+    { icon:'bi-camera-video', color:'text-success',  title:'Live Camera',        desc:'Access your webcam and capture frames for real-time mask detection.' },
+    { icon:'bi-clock-history',color:'text-info',     title:'Prediction History', desc:'All results saved to a searchable, filterable database with timestamps.' },
+    { icon:'bi-speedometer2', color:'text-warning',  title:'High Accuracy',      desc:'CNN model trained on thousands of images with 95–98% test accuracy.' },
+    { icon:'bi-phone',        color:'text-danger',   title:'Mobile Friendly',    desc:'Fully responsive Bootstrap 5 design — works on any screen size.' },
+    { icon:'bi-download',     color:'text-secondary',title:'Export Reports',     desc:'Download a prediction report as a PDF directly from the history page.' },
+  ];
+</script>
+{% endblock %}

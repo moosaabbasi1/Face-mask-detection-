@@ -1,0 +1,189 @@
+{% extends 'detector/base.html' %}
+{% load static %}
+
+{% block title %}Detect{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Page header -->
+  <div class="text-center mb-5">
+    <span class="badge bg-primary-subtle text-primary rounded-pill px-3 mb-2">
+      <i class="bi bi-upload me-1"></i> Image Upload
+    </span>
+    <h1 class="display-5 fw-bold">Face Mask Detection</h1>
+    <p class="lead text-muted">Upload an image and our CNN model will classify the mask status.</p>
+  </div>
+
+  <div class="row g-4 justify-content-center">
+
+    <!-- ── Upload card ─────────────────────────────────────────── -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow h-100">
+        <div class="card-header bg-transparent border-0 pt-4 px-4">
+          <h5 class="fw-bold mb-0">
+            <i class="bi bi-image me-2 text-primary"></i>Upload Image
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          <form method="post" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+
+            <!-- Drop zone -->
+            <div class="drop-zone rounded-3 text-center p-5 mb-4" id="dropZone">
+              <i class="bi bi-cloud-arrow-up display-4 text-muted mb-3 d-block"></i>
+              <p class="fw-semibold mb-1">Drag &amp; drop image here</p>
+              <p class="text-muted small mb-3">JPEG, PNG, WebP — max 5 MB</p>
+              {{ form.image }}
+            </div>
+
+            <!-- Preview -->
+            <div id="previewContainer" class="text-center mb-4 d-none">
+              <img id="imagePreview" src="#" alt="Preview"
+                   class="img-fluid rounded-3 shadow-sm" style="max-height:280px">
+              <p class="text-muted small mt-2" id="fileName"></p>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 btn-lg rounded-pill" id="submitBtn">
+              <span id="btnText"><i class="bi bi-cpu me-2"></i>Run Detection</span>
+              <span id="btnSpinner" class="d-none">
+                <span class="spinner-border spinner-border-sm me-2"></span>Analysing…
+              </span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Result card ─────────────────────────────────────────── -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow h-100">
+        <div class="card-header bg-transparent border-0 pt-4 px-4">
+          <h5 class="fw-bold mb-0">
+            <i class="bi bi-bar-chart me-2 text-success"></i>Result
+          </h5>
+        </div>
+        <div class="card-body p-4 d-flex flex-column">
+
+          {% if result %}
+            {% if result.success %}
+
+            <!-- ✅ Icon — handles all 3 classes -->
+            <div class="text-center mb-4">
+              <div class="mb-3">
+                {% if result.prediction == 'Mask' %}
+                  <i class="bi bi-shield-check display-3" style="color:{{ result.color }}"></i>
+                {% elif result.prediction == 'Incorrect Mask' %}
+                  <i class="bi bi-shield-exclamation display-3" style="color:{{ result.color }}"></i>
+                {% else %}
+                  <i class="bi bi-shield-x display-3" style="color:{{ result.color }}"></i>
+                {% endif %}
+              </div>
+              <h2 class="fw-bold" style="color:{{ result.color }}">{{ result.prediction }}</h2>
+              <p class="text-muted mb-0">Prediction Result</p>
+            </div>
+
+            <!-- Confidence bar -->
+            <div class="mb-4">
+              <div class="d-flex justify-content-between mb-2">
+                <span class="fw-semibold small">Confidence</span>
+                <span class="fw-bold small" style="color:{{ result.color }}">
+                  {{ result.confidence }}%
+                </span>
+              </div>
+              <div class="progress" style="height:12px;border-radius:6px">
+                <div class="progress-bar" role="progressbar"
+                     style="width:{{ result.confidence }}%;background:{{ result.color }};border-radius:6px"
+                     data-width="{{ result.confidence }}">
+                </div>
+              </div>
+            </div>
+
+            <!-- Status badge — handles all 3 classes -->
+            <div class="text-center mb-4">
+              {% if result.prediction == 'Mask' %}
+                <span class="badge bg-success-subtle text-success rounded-pill px-4 py-2 fs-6">
+                  <i class="bi bi-check-circle me-2"></i>Face Mask Detected ✓
+                </span>
+              {% elif result.prediction == 'Incorrect Mask' %}
+                <span class="badge bg-warning-subtle text-warning rounded-pill px-4 py-2 fs-6">
+                  <i class="bi bi-exclamation-circle me-2"></i>Mask Worn Incorrectly ⚠
+                </span>
+              {% else %}
+                <span class="badge bg-danger-subtle text-danger rounded-pill px-4 py-2 fs-6">
+                  <i class="bi bi-exclamation-triangle me-2"></i>No Mask Detected ✗
+                </span>
+              {% endif %}
+            </div>
+
+            <!-- Info cards -->
+            <div class="row g-2 mt-auto">
+              <div class="col-6">
+                <div class="p-3 rounded-3 text-center bg-body-secondary">
+                  <p class="small text-muted mb-1">Confidence</p>
+                  <p class="fw-bold mb-0">{{ result.confidence }}%</p>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 rounded-3 text-center bg-body-secondary">
+                  <p class="small text-muted mb-1">Model</p>
+                  <p class="fw-bold mb-0 small">CNN · Keras</p>
+                </div>
+              </div>
+            </div>
+
+            {% else %}
+            <!-- ❌ Error -->
+            <div class="text-center py-5">
+              <i class="bi bi-exclamation-triangle display-3 text-warning mb-3"></i>
+              <h5 class="text-danger">Prediction Error</h5>
+              <p class="text-muted">{{ result.error }}</p>
+            </div>
+            {% endif %}
+
+          {% else %}
+          <!-- Placeholder -->
+          <div class="text-center py-5 text-muted flex-grow-1
+                      d-flex flex-column align-items-center justify-content-center">
+            <i class="bi bi-image display-3 mb-3 opacity-25"></i>
+            <p class="fw-semibold">No result yet</p>
+            <p class="small">Upload an image and click <em>Run Detection</em>.</p>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /row -->
+
+  <!-- Tips -->
+  <div class="row justify-content-center mt-5">
+    <div class="col-lg-10">
+      <div class="card border-0 bg-body-secondary">
+        <div class="card-body p-4">
+          <h6 class="fw-semibold mb-3">
+            <i class="bi bi-lightbulb text-warning me-2"></i>Tips for Best Results
+          </h6>
+          <div class="row g-3 small text-muted">
+            <div class="col-md-4">
+              <i class="bi bi-check2 text-success me-1"></i>Clear, well-lit frontal face photo
+            </div>
+            <div class="col-md-4">
+              <i class="bi bi-check2 text-success me-1"></i>Face occupies most of the frame
+            </div>
+            <div class="col-md-4">
+              <i class="bi bi-check2 text-success me-1"></i>Avoid blur, extreme angles, or occlusion
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'detector/js/detection.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'detector/base.html' %}
+{% block title %}Live Camera{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h1 class="section-title">Live Camera Detection</h1>
+      <p class="section-subtitle">Real-time face mask detection using your webcam</p>
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="glass-card text-center">
+          <video id="video" width="100%" style="border-radius:12px;max-height:400px;background:#000;" autoplay playsinline></video>
+          <canvas id="canvas" style="display:none;"></canvas>
+          <div class="mt-4 d-flex gap-3 justify-content-center flex-wrap">
+            <button id="startBtn" class="btn-accent btn">Start Camera</button>
+            <button id="captureBtn" class="btn-ghost btn" disabled>Capture & Detect</button>
+            <button id="stopBtn" class="btn btn-outline-danger rounded-pill px-4" disabled>Stop</button>
+          </div>
+          <div id="camResult" class="mt-4"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block extra_js %}
+<script>
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const startBtn = document.getElementById('startBtn');
+const captureBtn = document.getElementById('captureBtn');
+const stopBtn = document.getElementById('stopBtn');
+const camResult = document.getElementById('camResult');
+let stream;
+
+startBtn.addEventListener('click', async () => {
+  stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  video.srcObject = stream;
+  startBtn.disabled = true;
+  captureBtn.disabled = false;
+  stopBtn.disabled = false;
+});
+
+captureBtn.addEventListener('click', () => {
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  canvas.toBlob(async blob => {
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      camResult.innerHTML = '<p class="text-muted">Analyzing...</p>';
+      const res = await fetch('{% url "camera_predict" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ image_data: reader.result })
+      });
+      const data = await res.json();
+      if (data.success) {
+        const cls = data.prediction === 'Mask' ? 'result-mask' : 'result-nomask';
+        camResult.innerHTML = `
+          <div class="result-badge ${cls} mx-auto mb-2">
+            <i class="bi bi-${data.prediction === 'Mask' ? 'shield-check' : 'shield-x'}"></i>
+            ${data.prediction}
+          </div>
+          <p class="text-muted">Confidence: <strong>${data.confidence}%</strong></p>`;
+      } else {
+        camResult.innerHTML = `<p class="text-danger">${data.error}</p>`;
+      }
+    };
+    reader.readAsDataURL(blob);
+  }, 'image/jpeg');
+});
+
+stopBtn.addEventListener('click', () => {
+  stream?.getTracks().forEach(t => t.stop());
+  video.srcObject = null;
+  startBtn.disabled = false;
+  captureBtn.disabled = true;
+  stopBtn.disabled = true;
+});
+</script>
+{% endblock %}

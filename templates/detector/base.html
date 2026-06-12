@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}FaceMask AI{% endblock %} — Face Mask Detection System</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'detector/css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ── Navbar ──────────────────────────────────────────────────────────── -->
+<nav class="navbar navbar-expand-lg sticky-top shadow-sm" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'home' %}">
+      <span class="brand-icon"><i class="bi bi-shield-check"></i></span>
+      <span>FaceMask<span class="text-accent">AI</span></span>
+    </a>
+
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+             href="{% url 'home' %}"><i class="bi bi-house me-1"></i>Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'detection' %}active{% endif %}"
+             href="{% url 'detection' %}"><i class="bi bi-upload me-1"></i>Detect</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'camera' %}active{% endif %}"
+             href="{% url 'camera' %}"><i class="bi bi-camera-video me-1"></i>Live Camera</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'history' %}active{% endif %}"
+             href="{% url 'history' %}"><i class="bi bi-clock-history me-1"></i>History</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}"
+             href="{% url 'about' %}"><i class="bi bi-info-circle me-1"></i>About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'faq' %}active{% endif %}"
+             href="{% url 'faq' %}"><i class="bi bi-question-circle me-1"></i>FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}"
+             href="{% url 'contact' %}"><i class="bi bi-envelope me-1"></i>Contact</a>
+        </li>
+        <li class="nav-item ms-lg-2">
+          <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" id="themeToggle" title="Toggle dark/light mode">
+            <i class="bi bi-moon-stars" id="themeIcon"></i>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Toast container ────────────────────────────────────────────────── -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+  {% for message in messages %}
+  <div class="toast align-items-center text-bg-{% if message.tags == 'error' %}danger{% else %}success{% endif %} border-0 show"
+       role="alert" data-bs-autohide="true" data-bs-delay="4000">
+    <div class="d-flex">
+      <div class="toast-body fw-semibold">
+        <i class="bi bi-{% if message.tags == 'error' %}exclamation-triangle{% else %}check-circle{% endif %} me-2"></i>
+        {{ message }}
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- ── Page content ───────────────────────────────────────────────────── -->
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ── Footer ─────────────────────────────────────────────────────────── -->
+<footer class="footer mt-auto py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="bi bi-shield-check text-accent"></i> FaceMask<span class="text-accent">AI</span>
+        </h5>
+        <p class="text-muted small">
+          An AI-powered face mask detection system built with deep learning and Django.
+          Real-time predictions, webcam support, and full prediction history.
+        </p>
+      </div>
+      <div class="col-lg-2 col-6">
+        <h6 class="fw-semibold mb-3">Navigation</h6>
+        <ul class="list-unstyled small">
+          <li><a href="{% url 'home' %}" class="footer-link">Home</a></li>
+          <li><a href="{% url 'detection' %}" class="footer-link">Detection</a></li>
+          <li><a href="{% url 'camera' %}" class="footer-link">Live Camera</a></li>
+          <li><a href="{% url 'history' %}" class="footer-link">History</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-2 col-6">
+        <h6 class="fw-semibold mb-3">Info</h6>
+        <ul class="list-unstyled small">
+          <li><a href="{% url 'about' %}" class="footer-link">About</a></li>
+          <li><a href="{% url 'faq' %}" class="footer-link">FAQ</a></li>
+          <li><a href="{% url 'contact' %}" class="footer-link">Contact</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-4">
+        <h6 class="fw-semibold mb-3">Technology Stack</h6>
+        <div class="d-flex flex-wrap gap-2">
+          <span class="badge bg-primary-subtle text-primary rounded-pill px-3">Django</span>
+          <span class="badge bg-success-subtle text-success rounded-pill px-3">TensorFlow</span>
+          <span class="badge bg-info-subtle text-info rounded-pill px-3">Bootstrap 5</span>
+          <span class="badge bg-warning-subtle text-warning rounded-pill px-3">Keras</span>
+          <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3">SQLite</span>
+        </div>
+      </div>
+    </div>
+    <hr class="my-4 opacity-25">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 small text-muted">
+      <span>© 2024 FaceMaskAI — Built with <i class="bi bi-heart-fill text-danger"></i> using Django & CNN</span>
+      <span>Made for educational &amp; research purposes</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS -->
+<script src="{% static 'detector/js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

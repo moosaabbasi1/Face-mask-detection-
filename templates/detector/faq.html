@@ -1,0 +1,30 @@
+{% extends 'detector/base.html' %}
+{% block title %}FAQ{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h1 class="section-title">Frequently Asked Questions</h1>
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="accordion" id="faqAccordion">
+          {% for faq in faqs %}
+          <div class="accordion-item border mb-3 rounded-3 overflow-hidden">
+            <h2 class="accordion-header">
+              <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-semibold"
+                type="button" data-bs-toggle="collapse" data-bs-target="#faq{{ forloop.counter }}">
+                {{ faq.question }}
+              </button>
+            </h2>
+            <div id="faq{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#faqAccordion">
+              <div class="accordion-body text-muted">{{ faq.answer }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
